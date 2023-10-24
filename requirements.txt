@@ -1,0 +1,9 @@
+ultralytics
+opencv-python
+numpy
+lapx
+pyvista
+matplotlib
+panda3d
+panda3d-gltf
+panda3d-simplepbr

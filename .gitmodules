@@ -1,0 +1,3 @@
+[submodule "YoloV8-Pose-Keypoint-Classification"]
+	path = YoloV8-Pose-Keypoint-Classification
+	url = https://github.com/Alimustoofaa/YoloV8-Pose-Keypoint-Classification.git
