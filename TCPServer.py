@@ -10,10 +10,14 @@ from detection import *
 import traceback
 from load import *
 from postprocessing import *
+from http_operation import *
+import atexit
+
 
 def tcp_server():
     serverHost = '' # localhost
     serverPort = 9090
+    add_host(socket.gethostbyname(socket.gethostname()))
     save_folder = 'data_long'
     print("Initializing Object Detection...")
     #track(cv2.imread("test/test.png"))
@@ -38,8 +42,6 @@ def tcp_server():
         try:
             conn, addr = sSock.accept() # Blocking, wait for incoming connection
             break
-        except KeyboardInterrupt:
-            sys.exit(0)
         except Exception:
             continue
 
@@ -91,9 +93,6 @@ def tcp_server():
                     data_post_process(finalData, save_folder)
                     currentDataLength = 0
                     finalData.clear()
-                #print(data_length)
-                #depth_img_np = np.frombuffer(data[5:5+2*N], np.uint16).reshape((image_height,image_width)) #For short throw sensor it is ((512,512))
-                #print("transforming abimage")
                 
             if header == 'f':
                 # save spatial camera images
@@ -120,6 +119,11 @@ def tcp_server():
 
 def onReceive():
     return 0
+
+def onExit():
+    del_host()
+    
+atexit.register(onExit)
 
 if __name__ == "__main__":
     tcp_server()
