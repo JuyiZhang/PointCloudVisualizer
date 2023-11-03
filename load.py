@@ -56,18 +56,17 @@ def getPointCloudCoordinate(timestamp, x, y):
     return data[y*288+x]
 
 def loadDepthData(timestamp):
-    data = np.load(getImageName(timestamp,"D"))
-    color = cv2.imread(getImageName(timestamp, "A"))[:,:,1].reshape(-1,1)
+    data = np.load(getImageName(timestamp,"D") + ".npy")
+    #color = cv2.imread(getImageName(timestamp, "A") + ".png")[:,:,1].reshape(-1,1)
     x = np.arange(0,320,1) * -1
     y = np.arange(0,288,1)
     x,y = np.meshgrid(x,y)
     z = data * -1
-    print(color.shape)
     fig = plt.figure()
     #abImage = read_png(fileName)
     ax = fig.add_subplot(111, projection='3d', proj_type='ortho')
     
-    ax.view_init(elev=90, azim = 90, roll = 0)
+    ax.view_init(elev=140, azim = 90, roll = -30)
     #ax.plot_surface(xim, yim, zim, rstride = 50, cstride = 50, facecolors = abImage)
     color_map = plt.get_cmap('plasma')
     # Plot the point cloud data

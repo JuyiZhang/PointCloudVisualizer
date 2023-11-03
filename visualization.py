@@ -38,6 +38,7 @@ class Slugrace3D(ShowBase):
         base.disableMouse()
         self.camera.setPos(0,0,40)
         self.camera.setHpr(0,-90,0)
+        loadDepthData(timestamp)
         
 
 app = Slugrace3D()
