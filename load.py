@@ -1,5 +1,4 @@
 import numpy as np
-import pyvista as pv
 import matplotlib.pyplot as plt
 import os
 import cv2
@@ -62,12 +61,11 @@ def loadDepthData(timestamp):
     y = np.arange(0,288,1)
     x,y = np.meshgrid(x,y)
     z = data * -1
-    print(color.shape)
     fig = plt.figure()
     #abImage = read_png(fileName)
     ax = fig.add_subplot(111, projection='3d', proj_type='ortho')
     
-    ax.view_init(elev=90, azim = 90, roll = 0)
+    ax.view_init(elev=140, azim = 90, roll = -30)
     #ax.plot_surface(xim, yim, zim, rstride = 50, cstride = 50, facecolors = abImage)
     color_map = plt.get_cmap('plasma')
     # Plot the point cloud data
