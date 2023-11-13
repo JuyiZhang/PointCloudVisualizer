@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from pydantic import BaseModel
 
-torch.cuda.set_device(0)
+#torch.cuda.set_device(0)
 
 import ultralytics
 from ultralytics.engine.results import Results
