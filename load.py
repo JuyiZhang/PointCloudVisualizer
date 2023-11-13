@@ -56,8 +56,8 @@ def getPointCloudCoordinate(timestamp, x, y):
     return data[y*288+x]
 
 def loadDepthData(timestamp):
-    data = np.load(getImageName(timestamp,"D"))
-    color = cv2.imread(getImageName(timestamp, "A"))[:,:,1].reshape(-1,1)
+    data = np.load(getImageName(timestamp,"D") + ".npy")
+    color = cv2.imread(getImageName(timestamp, "A") + ".npy")[:,:,1].reshape(-1,1)
     x = np.arange(0,320,1) * -1
     y = np.arange(0,288,1)
     x,y = np.meshgrid(x,y)
@@ -82,7 +82,8 @@ def loadDepthData(timestamp):
     # Show the plot
     plt.show()
 
-def loadPointCloud(file, x_c=0, y_c=0, z_c=0):
+def loadPointCloud(timestamp, x_c=0, y_c=0, z_c=0):
+    file = getImageName(timestamp,"P") + ".npy"
     data = np.load(file)
     x_c = eulerAngleConversion(x_c)
     y_c = eulerAngleConversion(y_c)
