@@ -12,13 +12,15 @@ from load import *
 from postprocessing import *
 from http_operation import *
 import atexit
+import threading
 
 
 def tcp_server():
     serverHost = '' # localhost
     serverPort = 9090
+    sessionID = str(int(time.time()))
     add_host(socket.gethostbyname(socket.gethostname()))
-    save_folder = 'data_long'
+    save_folder = 'data_long/Session'+sessionID
     print("Initializing Object Detection...")
     #track(cv2.imread("test/test.png"))
     if not os.path.isdir(save_folder):
@@ -54,25 +56,42 @@ def tcp_server():
     while True:
         # Receiving from client
         try:
-            data = conn.recv(1024*1024*4+100)
+            data = conn.recv(512*512*4)
             
             if len(data)==0:
                 continue
             if currentHeader != "": # Means there are data that is not yet received
                 finalData += bytearray(data)
                 
-                if currentDataLength > len(finalData):
+                if currentDataLength + 1 > len(finalData):
                     continue
                 else:
                     if currentHeader == "c":
                         currentHeader = ""
-                        data_post_process(finalData, save_folder)
-                        currentDataLength = 0
-                        finalData.clear()    
-                    continue
+                        processData = finalData
+                        if len(finalData) > currentDataLength + 1:
+                            data = finalData[currentDataLength:len(processData)]
+                            processData = finalData[0:currentDataLength]
+                            t1 = threading.Thread(target=data_post_process, args=(processData, save_folder))
+                            t1.start()
+                            #data_post_process(finalData, save_folder)
+                            currentDataLength = 0
+                            finalData.clear() 
+                        else:
+                            processData = finalData
+                            t1 = threading.Thread(target=data_post_process, args=(processData, save_folder))
+                            t1.start()
+                            #data_post_process(finalData, save_folder)
+                            currentDataLength = 0
+                            finalData.clear()
+                            continue
                     
-            header = data[0:1].decode('utf-8')
-            print('--------------------------\nHeader: ' + header)
+            try:
+                header = data[0:1].decode('utf-8')
+                print('--------------------------\nHeader: ' + header)
+            except:
+                print('Header is not UTF8')
+                continue
             
 
 
@@ -94,7 +113,7 @@ def tcp_server():
                     currentDataLength = 0
                     finalData.clear()
                 
-            if header == 'f':
+            """if header == 'f':
                 # save spatial camera images
                 data_length = struct.unpack(">i", data[1:5])[0]
                 ts_left, ts_right = struct.unpack(">qq", data[5:21])
@@ -104,12 +123,14 @@ def tcp_server():
                 RF_img_np = np.frombuffer(data[21+N:21+2*N], np.uint8).reshape((480,640))
                 cv2.imwrite(save_folder + str(ts_left)+'_LF.tiff', LF_img_np)
                 cv2.imwrite(save_folder + str(ts_right)+'_RF.tiff', RF_img_np)
-                print('Image with ts %d and %d is saved' % (ts_left, ts_right))
+                print('Image with ts %d and %d is saved' % (ts_left, ts_right))"""
 
         except:
             print(traceback.print_exc())
             userinput = input("Error on receiving data, press e to exit, or any other key to continue")
             if userinput == 'e' or userinput == 'E':
+                print('Closing socket...')
+                sSock.close()
                 break
             else:
                 continue

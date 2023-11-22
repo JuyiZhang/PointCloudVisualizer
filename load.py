@@ -56,7 +56,7 @@ def getPointCloudCoordinate(timestamp, x, y):
 
 def loadDepthData(timestamp):
     data = np.load(getImageName(timestamp,"D") + ".npy")
-    color = cv2.imread(getImageName(timestamp, "A") + ".npy")[:,:,1].reshape(-1,1)
+    #color = cv2.imread(getImageName(timestamp, "A") + ".npy")[:,:,1].reshape(-1,1)
     x = np.arange(0,320,1) * -1
     y = np.arange(0,288,1)
     x,y = np.meshgrid(x,y)

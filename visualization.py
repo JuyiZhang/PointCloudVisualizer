@@ -4,7 +4,7 @@ import simplepbr
 from load import *
 from postprocessing import *
 
-timestamp = 1698064389229
+timestamp = 1700487361292
 
 class Slugrace3D(ShowBase):
     def __init__(self):
@@ -40,7 +40,7 @@ class Slugrace3D(ShowBase):
         base.disableMouse()
         self.camera.setPos(0,0,40)
         self.camera.setHpr(0,-90,0)
-        loadDepthData(timestamp)
+        #loadDepthData(timestamp)
         
 
 app = Slugrace3D()

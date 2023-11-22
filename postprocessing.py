@@ -39,12 +39,14 @@ def data_post_process(data, save_folder):
     #timestamp = str(int(time.time()))
     if not os.path.exists(save_folder + "/" + str(int(timestamp/60000))):
         os.mkdir(save_folder + "/" + str(int(timestamp/60000)))
+    cv2.imwrite(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Abimage.png", ab_img_np)
     np.save(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Abimage.sci", ab_img_np)
     np.save(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Depth_Map.sci", depthMap_img_np)
     np.save(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Point_Cloud_Data.sci", pointcloud_np)
     np.save(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Coordinate_Data.sci", coordinate)
 
     currentTimestamp = int(time.time_ns()/1000000)
+    print("Data Size: " + str(len(data)))
     print("Current Timestamp:" + str(currentTimestamp))
     print("Timestamp at receive:" + str(timestamp))
     print("Delay: " + str((currentTimestamp-timestamp)/1000))
