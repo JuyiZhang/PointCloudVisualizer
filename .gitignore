@@ -2,3 +2,4 @@ test/
 *.pt
 venv/
 virtenv/
+data_long/

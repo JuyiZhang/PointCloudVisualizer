@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "python": "/Users/arkr/Documents/Dev/PersonDetection/virtenv/bin/python",virtenv/bin/python
+            "python": "/Users/arkr/Documents/Dev/PersonDetection/virtenv/bin/python",
             "justMyCode": true
         }
     ]
