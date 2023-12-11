@@ -20,7 +20,7 @@ def tcp_server():
     serverPort = 9090
     sessionID = str(int(time.time()))
     add_host(socket.gethostbyname(socket.gethostname()))
-    save_folder = 'data_long/Session'+sessionID
+    save_folder = 'data_long/Session_'+sessionID
     print("Initializing Object Detection...")
     #track(cv2.imread("test/test.png"))
     if not os.path.isdir(save_folder):
@@ -104,6 +104,7 @@ def tcp_server():
                 depth_length = struct.unpack(">i", data[9:13])[0]
                 ab_length = struct.unpack(">i", data[13:17])[0]
                 pointcloud_length = struct.unpack(">i", data[17:21])[0]
+                print("Length of Point Cloud: " + str(pointcloud_length))
                 currentDataLength = depth_length + ab_length + pointcloud_length + 21
                 if len(data) < currentDataLength: #Insufficient data, continue receive
                     continue

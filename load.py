@@ -39,20 +39,21 @@ data_folder = "data_long"
         print(file)
         loadPointCloud("data/"+file)"""
 
-def loadDepthImage(timestamp, ab=True): 
+def loadDepthImage(timestamp, ab=True, session=None): 
     if (ab):
-        imageName = getImageName(timestamp, "A")
+        imageName = getImageName(timestamp, "A", session)
     else:
-        imageName = getImageName(timestamp, "D")
+        imageName = getImageName(timestamp, "D", session)
     image = cv2.imread(imageName)
 
-def getDepth(timestamp, x, y):
-    data = np.load(getImageName(timestamp,"D")+".npy")
-    return data[x][y]
+def getDepth(timestamp, x, y, session=None):
+    data = np.load(getImageName(timestamp,"D", session)+".npy")
+    #print(data.shape)
+    return data[y][x]
 
-def getPointCloudCoordinate(timestamp, x, y):
-    data = np.load(getImageName(timestamp,"P") + ".npy")
-    return data[y*288+x]
+def getPointCloudCoordinate(timestamp, x, y, session=None):
+    data = np.load(getImageName(timestamp,"P", session) + ".npy")
+    return data[y*320+x]
 
 def loadDepthData(timestamp):
     data = np.load(getImageName(timestamp,"D") + ".npy")
@@ -117,8 +118,8 @@ def loadPointCloud(timestamp, x_c=0, y_c=0, z_c=0):
     # Show the plot
     plt.show()
 
-def getUserCoordinate(timestamp):
-    return np.load((getImageName(timestamp,"C")) + ".npy")
+def getUserCoordinate(timestamp, session=None):
+    return np.load((getImageName(timestamp,"C",session)) + ".npy")
 
 #Utilities Functions
 
@@ -129,8 +130,12 @@ def eulerAngleConversion(angle):
     else:
         return angle
 
-def getImageName(timestamp, type):
-    imageName = data_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000)
+def getImageName(timestamp, type, session = None):
+    imageName = data_folder + "/"
+    if session == None:
+        imageName += str(int(timestamp/60000)) + "/" + str(timestamp % 60000)
+    else:
+        imageName += "Session_" + str(session) + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000)
     if type == 'A':
         imageName += "_Abimage.sci"
     elif type == 'C':

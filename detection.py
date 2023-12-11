@@ -64,8 +64,11 @@ class DetectionManager:
         cv2.imshow("Tracking image from Hololens", image)
         cv2.waitKey(300)
         input()
-        
-    def poseEstimation(self, image, timestamp):
+    
+    def pose_eval(self, image):
+        model.track(image, device="mps", persist=True)
+    
+    def poseEstimation(self, image, timestamp, session=None, observer_coord=np.array([0,0,0])):
         results = self.detection_keypoint(image)
         keypoints = self.detection_keypoint.get_xy_keypoint(results)
         boundingBoxes = np.array(results[0].boxes.xyxy.cpu(), dtype="int")
@@ -81,14 +84,13 @@ class DetectionManager:
             elif i < 11:
                 color = (0,0,255)
             cv2.circle(image, (x,y), 3, color, -1)
-            threed_coordinate = getPointCloudCoordinate(timestamp, x, y)
-            validity = True
-            if np.linalg.norm(threed_coordinate) < 0.2 or (x == 0 and y == 0):
-                validity = False
+            threed_coordinate = getPointCloudCoordinate(timestamp, x, y, session)
+            validity = self.get_validity(threed_coordinate,x,y,getDepth(timestamp, x, y, session), observer_coord)
             keypoint_location.__setitem__(self.keypoint_name[i], threed_coordinate)
             keypoint_location_2d.__setitem__(self.keypoint_name[i], np.array([x,y]))
             keypoint_location_validity.__setitem__(self.keypoint_name[i], validity)
-            print(self.keypoint_name[i] + ": (" + str(x) + "," + str(y) + "), 3D Depth: " + str(getPointCloudCoordinate(timestamp, x, y)) + ", 2D Depth: " + str(getDepth(timestamp, x, y)) + ", Validity:" + str(validity))
+            if validity:
+                print(self.keypoint_name[i] + ": (" + str(x) + "," + str(y) + "), 3D Depth: " + str(getPointCloudCoordinate(timestamp, x, y, session)) + ", 2D Depth: " + str(getDepth(timestamp, x, y, session)) + ", Validity:" + str(validity))
         #input()
         body_vector = keypoint_location_2d["Left Shoulder"] - keypoint_location_2d["Right Shoulder"]
         unit_body_vector = body_vector/np.linalg.norm(body_vector)
@@ -96,13 +98,28 @@ class DetectionManager:
         dot_x_body = np.dot(x_unit_vector,unit_body_vector)
         orientation_observed = np.arccos(dot_x_body)
         if keypoint_location_validity["Left Shoulder"] and keypoint_location_validity["Right Shoulder"]:
-            coordinate_observed = (keypoint_location["Left Shoulder"] + keypoint_location["Right Shoulder"])/2
+            if np.linalg.norm(keypoint_location["Left Shoulder"] - keypoint_location["Right Shoulder"]) < 0.6:
+                coordinate_observed = (keypoint_location["Left Shoulder"] + keypoint_location["Right Shoulder"])/2
+            else:
+                coordinate_observed = keypoint_location["Right Shoulder"]
         elif keypoint_location_validity["Left Shoulder"]:
             coordinate_observed = keypoint_location["Left Shoulder"]
         elif keypoint_location_validity["Right Shoulder"]:
             coordinate_observed = keypoint_location["Right Shoulder"]
         cv2.imshow("Tracking image from Hololens", image)
         return coordinate_observed, orientation_observed
+    
+    def get_validity(self, threed_coordinate, x, y, depth, observer_coord):
+        depth_norm = np.linalg.norm(threed_coordinate - observer_coord)
+        if depth_norm < 0.3 or (x == 0 and y == 0): #or np.abs(depth_norm - float(depth)/1000) > 0.8:
+            return False
+        else:
+            return True
+    
+    def get_coordinate(self, coordinate3d_data, validity):
+        return 0
+    
+    
 
 
 
