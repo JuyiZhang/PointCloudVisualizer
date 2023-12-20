@@ -13,12 +13,14 @@ from postprocessing import *
 from http_operation import *
 import atexit
 import threading
+from debug_var import *
 
 
 def tcp_server():
     serverHost = '' # localhost
     serverPort = 9090
     sessionID = str(int(time.time()))
+    session_ts = sessionID
     add_host(socket.gethostbyname(socket.gethostname()))
     save_folder = 'data_long/Session_'+sessionID
     print("Initializing Object Detection...")
@@ -72,14 +74,15 @@ def tcp_server():
                         if len(finalData) > currentDataLength + 1:
                             data = finalData[currentDataLength:len(processData)]
                             processData = finalData[0:currentDataLength]
-                            t1 = threading.Thread(target=data_post_process, args=(processData, save_folder))
+                            t1 = threading.Thread(target=data_post_process, args=(processData, save_folder, conn))
                             t1.start()
+                            
                             #data_post_process(finalData, save_folder)
                             currentDataLength = 0
                             finalData.clear() 
                         else:
                             processData = finalData
-                            t1 = threading.Thread(target=data_post_process, args=(processData, save_folder))
+                            t1 = threading.Thread(target=data_post_process, args=(processData, save_folder, conn))
                             t1.start()
                             #data_post_process(finalData, save_folder)
                             currentDataLength = 0
@@ -110,7 +113,7 @@ def tcp_server():
                     continue
                 else:
                     currentHeader = ""
-                    data_post_process(finalData, save_folder)
+                    data_post_process(finalData, save_folder, conn)
                     currentDataLength = 0
                     finalData.clear()
                 

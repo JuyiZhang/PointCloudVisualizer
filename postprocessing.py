@@ -5,15 +5,21 @@ import cv2
 from detection import DetectionManager
 import os
 
+from load import getImageName
+from debug_var import *
+
 image_height = 288
 image_width = 320
 
-def image_post_process_from_file(fileName, timestamp, medium=32, min=0, max=256, session=None, observer_coord=np.array([0,0,0])):
+def image_post_process_from_file(fileName, timestamp, medium=32, min=0, max=256, session=None, observer_coord=np.array([0,0,0]), save = True):
     image = np.load(fileName + ".npy")
-    #print(image.shape)
-    cv2.imwrite(fileName + ".png", image_post_process(image, medium, min, max))
     detection = DetectionManager()
-    return detection.poseEstimation(cv2.imread(fileName + ".png"), timestamp, session, observer_coord)
+    #print(image.shape)
+    if save:
+        cv2.imwrite(fileName + ".png", image_post_process(image, medium, min, max))
+        return detection.poseEstimation(cv2.imread(fileName + ".png"), timestamp, session, observer_coord)
+    else:
+        return detection.poseEstimation(image_post_process(image, medium, min, max), timestamp, session, observer_coord)
 
 def image_post_process(image, medium=128, min=0, max=256): # As we are using B&W image, an np array can be more efficient
     image_width = image.shape[0]
@@ -26,7 +32,7 @@ def image_post_process(image, medium=128, min=0, max=256): # As we are using B&W
                 image[i][j] = 255
     return image
 
-def data_post_process(data, save_folder):
+def data_post_process(data, save_folder, connection):
     timestamp = struct.unpack(">q", data[1:9])[0]
     depth_length = struct.unpack(">i", data[9:13])[0]
     ab_length = struct.unpack(">i", data[13:17])[0]
@@ -38,14 +44,17 @@ def data_post_process(data, save_folder):
     coordinate = np.frombuffer(data[currentDataLength-48: currentDataLength], np.float32).reshape((-1,3))
     #track(ab_img_np)
     #timestamp = str(int(time.time()))
-    if not os.path.exists(save_folder + "/" + str(int(timestamp/60000))):
-        os.mkdir(save_folder + "/" + str(int(timestamp/60000)))
-    cv2.imwrite(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Abimage.png", ab_img_np)
-    np.save(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Abimage.sci", ab_img_np)
-    np.save(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Depth_Map.sci", depthMap_img_np)
-    np.save(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Point_Cloud_Data.sci", pointcloud_np)
-    np.save(save_folder + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000) + "_Coordinate_Data.sci", coordinate)
-
+    if not os.path.exists(save_folder + "/" + str(int(timestamp/1000000))):
+        os.mkdir(save_folder + "/" + str(int(timestamp/1000000)))
+    cv2.imwrite(save_folder + "/" + str(int(timestamp/1000000)) + "/" + str(timestamp) + "_Abimage.png", ab_img_np)
+    np.save(save_folder + "/" + str(int(timestamp/1000000)) + "/" + str(timestamp) + "_Abimage.sci", ab_img_np)
+    np.save(save_folder + "/" + str(int(timestamp/1000000)) + "/" + str(timestamp) + "_Depth_Map.sci", depthMap_img_np)
+    np.save(save_folder + "/" + str(int(timestamp/1000000)) + "/" + str(timestamp) + "_Point_Cloud_Data.sci", pointcloud_np)
+    np.save(save_folder + "/" + str(int(timestamp/1000000)) + "/" + str(timestamp) + "_Coordinate_Data.sci", coordinate)
+    timestamp_nu = timestamp
+    #coord_observed, orient_observed = image_post_process_from_file(getImageName(timestamp_nu,"A",session_ts),timestamp_nu, session=session_ts, observer_coord=coordinate[0])
+    #connection.send(np.append(coord_observed, orient_observed).tobytes())
+    #print("Sending coordinate of" + coord_observed)
     currentTimestamp = int(time.time_ns()/1000000)
     print("Data Size: " + str(len(data)))
     print("Current Timestamp:" + str(currentTimestamp))

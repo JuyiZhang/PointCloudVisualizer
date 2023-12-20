@@ -133,9 +133,9 @@ def eulerAngleConversion(angle):
 def getImageName(timestamp, type, session = None):
     imageName = data_folder + "/"
     if session == None:
-        imageName += str(int(timestamp/60000)) + "/" + str(timestamp % 60000)
+        imageName += str(int(timestamp/1000000)) + "/" + str(timestamp)
     else:
-        imageName += "Session_" + str(session) + "/" + str(int(timestamp/60000)) + "/" + str(timestamp % 60000)
+        imageName += "Session_" + str(session) + "/" + str(int(timestamp/1000000)) + "/" + str(timestamp)
     if type == 'A':
         imageName += "_Abimage.sci"
     elif type == 'C':

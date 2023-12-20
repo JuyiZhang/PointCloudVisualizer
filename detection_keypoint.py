@@ -79,19 +79,16 @@ class DetectKeypoint:
         ]
     
     def get_xy_keypoint(self, results: Results) -> list:
-        result_keypoint = results.keypoints.xy.cpu().numpy()[0]
-        keypoint_data = self.extract_keypoint(result_keypoint)
-        return keypoint_data
+        result_keypoint_list = []
+        for result_keypoint in results.keypoints.xy.cpu().numpy():
+            keypoint_data = self.extract_keypoint(result_keypoint)
+            result_keypoint_list.append(keypoint_data)
+        return result_keypoint_list
     
     def __call__(self, image: np.array) -> Results:
         results = self.model.track(image, save=False, persist=True)[0]
         return results
     
-    def get_shoulder_keypoint(self, results: Results):
-        result_keypoint = results.keypoints.xy.cpu().numpy()[0]
-        return [result_keypoint[self.get_keypoint.LEFT_SHOULDER],result_keypoint[self.get_keypoint.RIGHT_SHOULDER]]
-    
-    def get_nose_keypoint(self, results: Results):
-        result_keypoint = results.keypoints.xy.cpu().numpy()[0]
-        return result_keypoint[self.get_keypoint.NOSE]
+    def get_person_count(self, results: Results):
+        return len(results.keypoints.xy.cpu().numpy())
 

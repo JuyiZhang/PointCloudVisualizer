@@ -5,6 +5,7 @@ from load import *
 from postprocessing import *
 from debug_var import *
 import numpy as np
+import time
 
 
 
@@ -24,9 +25,7 @@ class Slugrace3D(ShowBase):
         x_p = coordinate[0][0]
         y_p = coordinate[0][1]
         z_p = coordinate[0][2]
-        x_r = eulerAngleConversion(coordinate[1][0])
-        y_r = eulerAngleConversion(coordinate[1][1])
-        z_r = eulerAngleConversion(coordinate[1][2])
+        y_r = eulerAngleConversion(coordinate[1][1])#np.arctan(coordinate[1][1]/coordinate[1][0]) #Verify!
         pcd = np.load("data_long/Session_"+str(session_ts)+"/Point_Cloud.sci.npy")
         for point in pcd.reshape(-1,3):
             pointmodel = loader.loadModel("assets/point.stl")
@@ -35,18 +34,29 @@ class Slugrace3D(ShowBase):
             pointmodel.setColor(0.37,0.597,1.0)
             pointmodel.reparentTo(render)
         self.master.setPos(-z_p*10,x_p*10,y_p*10)
-        self.master.setHpr(y_r+210,0,0)
+        self.master.setHpr(y_r,0,0)
         self.master.reparentTo(render)
-        coord_observed, orient_observed = image_post_process_from_file(getImageName(timestamp_nu,"A",session_ts),timestamp_nu, session=session_ts, observer_coord=coordinate[0])
-        print(coord_observed, orient_observed)
-        self.observed = loader.loadModel("assets/human_representation.gltf")
-        x_op = coord_observed[0]
-        y_op = coord_observed[1]
-        z_op = coord_observed[2]
-        y_or = orient_observed
-        self.observed.setPos(-z_op*10,x_op*10, 0)
-        self.observed.setHpr(y_or/3.14*180+90,0,0)
-        self.observed.reparentTo(render)
+        timeopbegin = int(time.time_ns())
+        coord_list = image_post_process_from_file(getImageName(timestamp_nu,"A",session_ts),timestamp_nu, session=session_ts, observer_coord=coordinate[0])
+        timeop = int(time.time_ns()) - timeopbegin
+        print("Total time cost equals " + str(timeop/1000000))
+        if (coord_list != None):
+            for coord_observed in coord_list:
+                print(coord_observed)
+                if (len(coord_observed) == 0):
+                    continue
+                observed_person = loader.loadModel("assets/human_representation.gltf")
+                x_op = 0
+                z_op = 0
+                y_or = 0
+                if (coord_observed[0] != None):
+                    x_op = coord_observed[0]
+                    z_op = coord_observed[2]
+                if (len(coord_observed) == 4):
+                    y_or = coord_observed[3]
+                observed_person.setPos(-z_op*10,x_op*10, 0)
+                observed_person.setHpr(y_or/3.14*180,0,0)
+                observed_person.reparentTo(render)
         base.disableMouse()
         self.camera.setPos(30,-10,160)
         self.camera.setHpr(-8,-90,0)
