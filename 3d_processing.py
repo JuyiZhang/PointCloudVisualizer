@@ -54,7 +54,7 @@ def reconstruct_point_cloud_session(path):
                 timestamp_minsec_array.index(min_sec)
             except:
                 timestamp_minsec_array.append(min_sec)
-                timestamp_array.append(min_sec + timestamp_hr * 60000)
+                timestamp_array.append(min_sec)
     timestamp_array.sort()
 
     pcd_combined = o3d.geometry.PointCloud()

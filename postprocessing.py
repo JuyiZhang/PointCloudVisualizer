@@ -53,13 +53,13 @@ def data_post_process(data, save_folder, connection):
     np.save(save_folder + "/" + str(int(timestamp/1000000)) + "/" + str(timestamp) + "_Coordinate_Data.sci", coordinate)
     timestamp_nu = timestamp
     #coord_observed, orient_observed = image_post_process_from_file(getImageName(timestamp_nu,"A",session_ts),timestamp_nu, session=session_ts, observer_coord=coordinate[0])
-    #connection.send(np.append(coord_observed, orient_observed).tobytes())
+    connection.send(np.array((0,0,1,0,0,0)).astype(np.float32).tobytes())
     #print("Sending coordinate of" + coord_observed)
     currentTimestamp = int(time.time_ns()/1000000)
-    print("Data Size: " + str(len(data)))
-    print("Current Timestamp:" + str(currentTimestamp))
-    print("Timestamp at receive:" + str(timestamp))
-    print("Delay: " + str((currentTimestamp-timestamp)/1000))
+    #print("Data Size: " + str(len(data)))
+    #print("Current Timestamp:" + str(currentTimestamp))
+    #print("Timestamp at receive:" + str(timestamp))
+    #print("Delay: " + str((currentTimestamp-timestamp)/1000))
 #image_post_process_from_file("data_long/1697120292500Abimage.sci.npy")
 
 

@@ -6,6 +6,9 @@ from postprocessing import *
 from debug_var import *
 import numpy as np
 import time
+import threading
+from TCPServer import tcp_server
+from point_cloud_manager import *
 
 
 class Slugrace3D(ShowBase):
@@ -19,6 +22,10 @@ class Slugrace3D(ShowBase):
         props.setSize(1200,675)
         base.win.requestProperties(props)
         self.master = loader.loadModel("assets/human_representation.gltf")
+        coordinate = np.array()
+        pcd_mgr = PointCloudManager()
+        coord_list = []
+        threading.Thread(target=tcp_server, args=(coordinate, pcd_mgr, coord_list))
         coordinate = getUserCoordinate(timestamp_nu, session_ts)
         print(coordinate)
         x_p = coordinate[0][0]
