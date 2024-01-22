@@ -1,8 +1,7 @@
 import sys
-import cv2
 import numpy as np
-import torch
 from pydantic import BaseModel
+import Debug
 
 #torch.cuda.set_device(0)
 
@@ -90,7 +89,7 @@ class DetectKeypoint:
         return result_keypoint_list
     
     def get_bounding_box(self, results: Results):
-        return results.boxes.xyxy.cpu(), results.boxes.id.cpu()
+        return results.boxes.xyxy.cpu()
     
     def __call__(self, image: np.array) -> Results:
         results = self.model.track(image, save=False, persist=True)[0]

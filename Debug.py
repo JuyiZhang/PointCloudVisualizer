@@ -1,7 +1,7 @@
 import time
 
 debug_mode = True
-filter_category = ["Frame", "Conn", "Detection Miscellaneous"]
+filter_category = ["Frame", "Conn"]
 fp = open("log/Session_"+str(int(time.time()))+".log","a")
 
 def Log(log_content, force_print = False, category = "0"):

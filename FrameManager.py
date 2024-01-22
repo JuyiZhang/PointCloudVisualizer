@@ -60,7 +60,7 @@ class Frame:
         data_pointer_begin = data_pointer_end
         data_pointer_end = data_pointer_begin + ab_length
         self.ab_img = np.frombuffer(data[data_pointer_begin:data_pointer_end], np.uint8).reshape(image_shape)
-        self.ab_image_process(32, 0, 256)
+        self.ab_image_process(72)
         
         # Processing data for point cloud
         data_pointer_begin = data_pointer_end
@@ -113,16 +113,21 @@ class Frame:
         return self.session.session_folder + "/" + self.device + "/" + str(int(self.timestamp/1000000)) + ("" if type == "folder" else "/" + str(self.timestamp) + type_def[type])
 
     # Processing the collected ab image and convert it to yolo-compatible format
-    def ab_image_process(self, medium=128, min=0, max=256):
+    def ab_image_process(self, medium=128):
         Debug.Log("Begin Processing Ab Image", category="Frame")
         image_width = self.ab_img.shape[0]
         image_height = self.ab_img.shape[1]
+        min = np.min(self.ab_img)
+        max = np.max(self.ab_img)
         for i in range(image_width):
             for j in range(image_height):
-                if self.ab_img[i][j] < medium*2:
-                    self.ab_img[i][j] *= 128/medium
-                else:
-                    self.ab_img[i][j] = 255
+                raw_pxl_value = self.ab_img[i][j]
+                processed_pxl_value = (raw_pxl_value-min)*256/(max-min)
+                if (processed_pxl_value < medium):
+                    processed_pxl_value = 128/medium*processed_pxl_value
+                if (processed_pxl_value > medium):
+                    processed_pxl_value = 128/(256-medium)*(processed_pxl_value - medium)+128
+                
         self.ab_img = cv2.cvtColor(self.ab_img, cv2.COLOR_GRAY2RGB)
         Debug.Log("Ab Image Process Complete", category="Frame")
         

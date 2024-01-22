@@ -1,4 +1,5 @@
 import random
+import math
 
 def to_degree(radian):
     return radian / 3.14159 * 180
@@ -15,6 +16,9 @@ def generate_random_color(normalized=False):
     b = random.randint(100,255)/(255 if normalized else 1)
     c = random.randint(100,255)/(255 if normalized else 1)
     return (a, b, c)
+
+def get_2d_distance(vector1, vector2):
+    return math.sqrt((vector1[0] - vector2[0])**2 + (vector1[1] - vector2[1])**2)
 
 class Vector3D:
     def __init__(self, x = 0, y = 0, z = 0, vector = [0,0,0]) -> None:

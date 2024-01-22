@@ -18,7 +18,8 @@ class Session():
     observed_list = [] # The list of observed body
     devices_frame = dict() # The ip_address/pose pair
     main_device = "" # The main device for display collected data
-    detected_image: np.ndarray # The image after post processing
+    detected_image = np.array([]) # The image after post processing
+    master_frame_updated = False
         
     def __init__(self, save_data: bool = True, image_type: str = "long") -> None:
         self.timestamp = time.time()
@@ -36,12 +37,13 @@ class Session():
     def new_frame(self, data, device):
         if (device == self.main_device):
             self.current_frame = Frame(data, device, self.session_data)
+            self.master_frame_updated = True
             self.devices_frame[device] = self.current_frame.get_pose()
             self.detection_flag = True
         else:
             self.devices_frame[device] = Frame(data, device, self.session_data).get_pose()
         #self.point_cloud_manager.new_point_cloud_data(self.current_frame.point_cloud)
-        Debug.Log("Add detection frame")
+        
             #Process(target=DetectionManager.pose_estimation, args=(current_frame_queue, frame_result)).start()
             #threading.Thread(target=self.obtain_frame_data, args=frame_result).start()
         #self.frame_task_queue_point_cloud.append(self.current_frame)
@@ -55,7 +57,6 @@ class Session():
     def frame_detection(self):
         while(True):
             if self.detection_flag and not(self.detection_in_process):
-                Debug.Log("Perform Detection")
                 self.detection_in_process = True
                 self.observed_list, self.detected_image = DetectionManager.pose_estimation(self.current_frame)
                 if self.observed_list is not None:
@@ -88,13 +89,13 @@ class Session():
         return self.devices_frame
     
     def get_post_processed_image(self):
-        if self.detected_image != None:
+        if self.detected_image is not None:
             return self.detected_image
         else:
             return self.get_ab_image()
         
     def get_ab_image(self):
-        if self.current_frame != None:
+        if self.current_frame is not None:
             return self.current_frame.get_ab_image()
         else:
             return None
