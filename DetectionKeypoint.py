@@ -42,6 +42,8 @@ class DetectKeypoint:
 
         # extract function keypoint
     def extract_keypoint(self, keypoint: np.ndarray) -> list:
+        if (len(keypoint) == 0):
+            return None
         # nose
         nose_x, nose_y = keypoint[self.get_keypoint.NOSE]
         # eye
@@ -82,8 +84,13 @@ class DetectKeypoint:
         result_keypoint_list = []
         for result_keypoint in results.keypoints.xy.cpu().numpy():
             keypoint_data = self.extract_keypoint(result_keypoint)
+            if (keypoint_data == None):
+                return None
             result_keypoint_list.append(keypoint_data)
         return result_keypoint_list
+    
+    def get_bounding_box(self, results: Results):
+        return results.boxes.xyxy.cpu(), results.boxes.id.cpu()
     
     def __call__(self, image: np.array) -> Results:
         results = self.model.track(image, save=False, persist=True)[0]

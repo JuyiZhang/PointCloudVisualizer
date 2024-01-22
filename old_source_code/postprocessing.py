@@ -2,7 +2,7 @@ import struct
 import time
 import numpy as np
 import cv2
-from detection import DetectionManager
+from DetectionManager import DetectionManager
 import os
 
 from load import getImageName
@@ -11,15 +11,11 @@ from debug_var import *
 image_height = 288
 image_width = 320
 
-def image_post_process_from_file(fileName, timestamp, medium=32, min=0, max=256, session=None, observer_coord=np.array([0,0,0]), save = True):
+def image_post_process_from_file(fileName, timestamp, medium=32, min=0, max=256, session=None, observer_coord=np.array([0,0,0])):
     image = np.load(fileName + ".npy")
     detection = DetectionManager()
-    #print(image.shape)
-    if save:
-        cv2.imwrite(fileName + ".png", image_post_process(image, medium, min, max))
-        return detection.poseEstimation(cv2.imread(fileName + ".png"), timestamp, session, observer_coord)
-    else:
-        return detection.poseEstimation(image_post_process(image, medium, min, max), timestamp, session, observer_coord)
+    cv2.imwrite(fileName + ".png", image_post_process(image, medium, min, max))
+    return detection.poseEstimation(cv2.imread(fileName + ".png"), timestamp, session, observer_coord)
 
 def image_post_process(image, medium=128, min=0, max=256): # As we are using B&W image, an np array can be more efficient
     image_width = image.shape[0]

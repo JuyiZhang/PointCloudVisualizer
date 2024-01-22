@@ -11,34 +11,6 @@ abImage = None
 fileName = ""
 data_folder = "data_long"
 
-"""for file in dirList:
-
-    if file.endswith("tiff"):
-        image = cv2.imread("data/"+file)
-        hist, bins = np.histogram(image.flatten(),256,[0,256])
-        #cumulative sum of histogram
-        cdf = hist.cumsum()
-        #Remove everything equal to 0
-        cdf_m = np.ma.masked_equal(cdf,0)
-        
-        cdf_m = (cdf_m - cdf_m.min())*255/(cdf_m.max()-cdf_m.min())
-
-        cdf = np.ma.filled(cdf_m,0).astype('uint8')
-
-        processedImg = cdf[image]
-        if file.endswith("Abimage.tiff"):
-            cv2.imshow("AbImage", processedImg)
-            fileName = "data/"+file+"_processed.png"
-            cv2.imwrite(fileName,processedImg)
-            
-        else:
-            cv2.imshow("DepthMap", processedImg)
-            cv2.imwrite("data/"+file+"_processed.png",processedImg)
-
-    if file.endswith("npy"):
-        print(file)
-        loadPointCloud("data/"+file)"""
-
 def loadDepthImage(timestamp, ab=True, session=None): 
     if (ab):
         imageName = getImageName(timestamp, "A", session)

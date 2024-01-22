@@ -3,3 +3,5 @@ test/
 venv/
 virtenv/
 data_long/
+data/
+log/
