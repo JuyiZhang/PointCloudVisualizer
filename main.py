@@ -55,7 +55,6 @@ class MuTA(ShowBase):
                 self.devices_model[device_address] = self.create_model("human_representation", color_rgb=device_color)
                 self.new_address_button(device_address, device_color)
                 
-        """
         coordinate_dict = self.session.get_all_pose()
         observed_list = self.session.get_observed_list()
         if len(coordinate_dict.keys()) != 0:
@@ -68,7 +67,7 @@ class MuTA(ShowBase):
                 Debug.Log("Found body in space, creating instance")
             
         #self.render_point_cloud(self.session.get_point_cloud_data())
-        self.render_observed_user(observed_list)"""    
+        self.render_observed_user(observed_list[0])
         return Task.cont
     
     def update_ui(self):
