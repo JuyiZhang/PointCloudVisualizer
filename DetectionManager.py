@@ -7,11 +7,10 @@ from DetectionKeypoint import DetectKeypoint
 from FrameManager import Frame
 import random
 import Debug
-from multiprocessing import Queue
 import Utility
 
 
-model = YOLO("yolov8m-seg.pt")
+model = YOLO("yolov8n-seg.pt")
 
 track_history = []
     
@@ -88,14 +87,14 @@ def pose_estimation(frame: Frame) -> (list, any):
             keypoint_location.__setitem__(keypoint_name[i], threed_coordinate)
             keypoint_location_2d.__setitem__(keypoint_name[i], np.array([x,y]))
             keypoint_location_validity.__setitem__(keypoint_name[i], validity)
-            Debug.Log(keypoint_name[i] + ": (" + str(x) + "," + str(y) + "), 3D Depth: " + str(threed_coordinate) + ", 2D Depth: " + str(frame.get_depth_of(x,y)) + ", Validity:" + str(validity), category="Detection Miscellaneous")
+            Debug.Log(keypoint_name[i] + ": (" + str(x) + "," + str(y) + "), 3D Depth: " + str(threed_coordinate) + ", 2D Depth: " + str(frame.get_depth_of(x,y)) + ", Validity:" + str(validity), category="Detection")
         #input()
         coordinate_observed = get_coordinate(keypoint_location, keypoint_location_validity)
         
         if len(coordinate_observed) != 0:
             orientation_observed = orientation_calculation(keypoint_location_2d["Right Shoulder"], keypoint_location_2d["Left Shoulder"])
             coordinate_observed = np.append(coordinate_observed, orientation_observed)
-        coordinate_list.append([coordinate_observed, person_id])
+        coordinate_list.append([coordinate_observed.tolist(), person_id])
     cv2.imwrite("cache/" + str(frame.timestamp) + ".png", post_process_image)
     return remove_duplicate(coordinate_list), post_process_image
 
@@ -111,11 +110,12 @@ def orientation_calculation(x, y):
 
 # Input bounding box target, find the correlated segment and id
 def correlate_bounding_box(bounding_box_target, bounding_box_id_seg_array):
-    Debug.Log("Input Bounding Box: " + bounding_box_target.__str__())
+    Debug.Log("Input Bounding Box: " + bounding_box_target.__str__(), category="Detection")
     for i in range(0, len(bounding_box_id_seg_array)):
         bounding_box_to_inspect = bounding_box_id_seg_array[i][1]
-        if np.linalg.norm(bounding_box_target - bounding_box_to_inspect) < 10: # we regard this as same rectangle
-            Debug.Log("Bounding Box found: " + bounding_box_to_inspect.__str__())
+        Debug.Log("Inspecting bounding box of " + bounding_box_to_inspect.__str__(), category="Detection")
+        if np.linalg.norm(bounding_box_target - bounding_box_to_inspect) < 30: # we regard this as same rectangle
+            Debug.Log("Bounding Box found: " + bounding_box_to_inspect.__str__(), category="Detection")
             return bounding_box_id_seg_array[i][0], bounding_box_id_seg_array[i][2]
     return None, None
 
@@ -126,15 +126,15 @@ def get_validity(image_segment, threed_coordinate, x, y, observer_coord):
         return False
     else:
         if image_segment is None:
-            Debug.Log("No valid segment is assigned, regard as invalid", category="Detection Miscellaneous")
+            Debug.Log("No valid segment is assigned, regard as invalid", category="Detection")
             return False
         if cv2.pointPolygonTest(image_segment, (x,y), False) > 0:
-            Debug.Log("Passed Polygon Test", category="Detection Miscellaneous")
+            Debug.Log("Passed Polygon Test", category="Detection")
             return True
-        Debug.Log("Failed Polygon Test", category="Detection Miscellaneous")
+        Debug.Log("Failed Polygon Test", category="Detection")
         return False
 
-def get_coordinate(coordinate3d_data, validity):
+def get_coordinate(coordinate3d_data, validity) -> np.ndarray:
     validity_priority = ["Shoulder","Ear", "Hip","Elbow","Wrist","Knee","Ankle"]
     for priority_str in validity_priority:
         if validity["Left "+priority_str] and validity["Right "+priority_str]:
@@ -157,14 +157,15 @@ def remove_duplicate(coordinate_list):
             continue
         else:
             for out_coordinate_combine in final_output_list:
-                Debug.Log(coord, category="Detection remove duplicate")
+                Debug.Log(coord.__str__(), category="Detection")
                 out_coord = out_coordinate_combine[0:3]
-                Debug.Log(out_coord, category="Detection remove duplicate")
-                if (np.linalg.norm(out_coord - coord) < 0.1):
-                    Debug.Log("Duplicate found, not putting into list", category="Detection remove duplicate")
-                    duplicate_found = True
+                Debug.Log(out_coord.__str__(), category="Detection")
+                if (len(coord) == len(out_coord)):
+                    if (np.linalg.norm(out_coord - coord) < 0.1):
+                        Debug.Log("Duplicate found, not putting into list", category="Detection")
+                        duplicate_found = True
         if not(duplicate_found):
-            Debug.Log("Duplicate not found, safe to add to list", category="Detection remove duplicate")
+            Debug.Log("Duplicate not found, safe to add to list", category="Detection")
             final_output_list.append(coordinate_combine)
     return final_output_list
 

@@ -7,11 +7,12 @@ import numpy as np
 
 import Debug
 
-from FrameManager import Frame, SessionData
+from FrameManager import Frame
 import DetectionManager
-from PointCloudManagerAsync import PointCloudManager
+from FrameFileManager import get_file_name
+#from PointCloudManagerAsync import PointCloudManager
 
-class Session():
+class Session:
     
     detection_flag = False # Define if a new frame is ready for detection
     detection_in_process = False # Define if a detection is in process
@@ -21,27 +22,31 @@ class Session():
     detected_image = np.array([]) # The image after post processing
     master_frame_updated = False
         
-    def __init__(self, save_data: bool = True, image_type: str = "long") -> None:
-        self.timestamp = time.time()
-        self.session_folder = "data/Session_" + str(int(time.time()))
-        self.session_data = SessionData(image_type, save_data, self.session_folder)
+    def __init__(self, timestamp, save_data: bool = True, image_type: str = "long", use_secondary_tracking = True) -> None:
+        self.timestamp = timestamp
+        self.session_folder = "data/Session_" + str(int(timestamp))
         if not os.path.isdir(self.session_folder):
             os.mkdir(self.session_folder)
         self.save = save_data
         self.image_type = image_type
-        self.point_cloud_manager = PointCloudManager(timestamp=self.timestamp)
+        #self.point_cloud_manager = PointCloudManager(timestamp=self.timestamp)
         self.current_frame = None
+        self.use_secondary_tracking = use_secondary_tracking
         threading.Thread(target=self.frame_detection, daemon=True).start()
         #Process(target=self.frame_add_point_cloud, daemon=True).start()
         
-    def new_frame(self, data, device):
+    def new_frame(self, timestamp, device):
+        if (self.main_device == ""):
+            self.main_device = device
         if (device == self.main_device):
-            self.current_frame = Frame(data, device, self.session_data)
+            Debug.Log("Updating frame for main device", category="Frame")
+            self.current_frame = Frame(timestamp, device, self.session_folder)
             self.master_frame_updated = True
             self.devices_frame[device] = self.current_frame.get_pose()
             self.detection_flag = True
         else:
-            self.devices_frame[device] = Frame(data, device, self.session_data).get_pose()
+            Debug.Log("Updating frame for secondary device", category="Frame")
+            self.devices_frame[device] = Frame(timestamp, device, self.session_folder).get_pose()
         #self.point_cloud_manager.new_point_cloud_data(self.current_frame.point_cloud)
         
             #Process(target=DetectionManager.pose_estimation, args=(current_frame_queue, frame_result)).start()
@@ -56,22 +61,27 @@ class Session():
     
     def frame_detection(self):
         while(True):
-            if self.detection_flag and not(self.detection_in_process):
+            if self.detection_flag and not(self.detection_in_process) and self.use_secondary_tracking:
                 self.detection_in_process = True
-                self.observed_list, self.detected_image = DetectionManager.pose_estimation(self.current_frame)
-                if self.observed_list is not None:
-                    for item in self.observed_list:
-                        Debug.Log("The detected person coordinate in frame " + str(self.current_frame.timestamp) + " is " + item.__str__(), category="Detection")
+                frame_observed_list, self.detected_image = DetectionManager.pose_estimation(self.current_frame)
+                if frame_observed_list is not None:
+                    # Go over all the person detected
+                    for observed_frame in frame_observed_list:
+                        if observed_frame[1] is None:
+                            continue
+                        frame_found = False
+                        # Go over the existing list to see if there are id that can be updated cooresponding to the currently set person detected
+                        for i in range(0,len(self.observed_list)):
+                            if(self.observed_list[i][1] == observed_frame[1]):
+                                self.observed_list[i][0] = observed_frame[0]
+                                frame_found = True
+                                break
+                        if not(frame_found):
+                            self.observed_list.append(observed_frame)
+                for item in self.observed_list:
+                    Debug.Log("The detected person coordinate in time " + str(self.current_frame.timestamp) + " is " + item.__str__(), category="Detection")
                 self.detection_in_process = False
                 self.detection_flag = False
-    
-    """def frame_add_point_cloud(self):
-        while True:
-            if len(self.frame_task_queue_point_cloud) > 0:
-                point_cloud_frame = self.frame_task_queue_point_cloud.pop(0)
-                Debug.Log("Begin Processing Frame " + str(id(point_cloud_frame)), category="Session")
-                if len(self.frame_task_queue_point_cloud) < 10: # If there are too many frame waiting to be recognized, we simply skip to prevent occupation of memory
-                    self.point_cloud_manager.new_point_cloud_data(point_cloud_frame.point_cloud)"""
     
     def get_point_cloud_data(self):
         return self.point_cloud_manager.get_point_cloud_data()
@@ -99,4 +109,6 @@ class Session():
             return self.current_frame.get_ab_image()
         else:
             return None
-        
+    
+    def set_use_secondary_tracking(self, use_secondary_tracking = True):
+        self.use_secondary_tracking = use_secondary_tracking

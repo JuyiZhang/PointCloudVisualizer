@@ -8,3 +8,5 @@ panda3d-simplepbr
 pydantic
 torch
 open3d
+flask
+pyqt5
